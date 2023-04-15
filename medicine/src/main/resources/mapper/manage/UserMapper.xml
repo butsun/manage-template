@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sj.manage.mapper.UserMapper">
+    
+    <resultMap type="User" id="UserResult">
+        <result property="id"    column="id"    />
+        <result property="name"    column="name"    />
+        <result property="phone"    column="phone"    />
+        <result property="mail"    column="mail"    />
+        <result property="gender"    column="gender"    />
+        <result property="type"    column="type"    />
+        <result property="del"    column="del"    />
+    </resultMap>
+
+    <resultMap id="UserCourseResult" type="User" extends="UserResult">
+        <collection property="courseList" notNullColumn="sub_id" javaType="java.util.List" resultMap="CourseResult" />
+    </resultMap>
+
+    <resultMap type="Course" id="CourseResult">
+        <result property="id"    column="sub_id"    />
+        <result property="name"    column="sub_name"    />
+        <result property="introduction"    column="sub_introduction"    />
+        <result property="userId"    column="sub_user_id"    />
+        <result property="del"    column="sub_del"    />
+    </resultMap>
+
+    <sql id="selectUserVo">
+        select id, name, phone, mail, gender, type, del from user
+    </sql>
+
+    <select id="selectUserList" parameterType="User" resultMap="UserResult">
+        <include refid="selectUserVo"/>
+        <where>  
+            <if test="id != null "> and id = #{id}</if>
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="phone != null  and phone != ''"> and phone like concat('%', #{phone}, '%')</if>
+            <if test="mail != null  and mail != ''"> and mail like concat('%', #{mail}, '%')</if>
+            <if test="gender != null "> and gender = #{gender}</if>
+            <if test="type != null "> and type = #{type}</if>
+            <if test="del != null "> and del = #{del}</if>
+        </where>
+    </select>
+    
+    <select id="selectUserById" parameterType="Long" resultMap="UserCourseResult">
+        select a.id, a.name, a.phone, a.mail, a.gender, a.type, a.del,
+ b.id as sub_id, b.name as sub_name, b.introduction as sub_introduction, b.user_id as sub_user_id, b.del as sub_del
+        from user a
+        left join course b on b.user_id = a.id
+        where a.id = #{id}
+    </select>
+        
+    <insert id="insertUser" parameterType="User" useGeneratedKeys="true" keyProperty="id">
+        insert into user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">name,</if>
+            <if test="phone != null and phone != ''">phone,</if>
+            <if test="mail != null and mail != ''">mail,</if>
+            <if test="gender != null">gender,</if>
+            <if test="type != null">type,</if>
+            <if test="del != null">del,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="phone != null and phone != ''">#{phone},</if>
+            <if test="mail != null and mail != ''">#{mail},</if>
+            <if test="gender != null">#{gender},</if>
+            <if test="type != null">#{type},</if>
+            <if test="del != null">#{del},</if>
+         </trim>
+    </insert>
+
+    <update id="updateUser" parameterType="User">
+        update user
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="phone != null and phone != ''">phone = #{phone},</if>
+            <if test="mail != null and mail != ''">mail = #{mail},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="del != null">del = #{del},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteUserById" parameterType="Long">
+        delete from user where id = #{id}
+    </delete>
+
+    <delete id="deleteUserByIds" parameterType="String">
+        delete from user where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    
+    <delete id="deleteCourseByUserIds" parameterType="String">
+        delete from course where user_id in 
+        <foreach item="userId" collection="array" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteCourseByUserId" parameterType="Long">
+        delete from course where user_id = #{userId}
+    </delete>
+
+    <insert id="batchCourse">
+        insert into course( id, name, introduction, user_id, del) values
+		<foreach item="item" index="index" collection="list" separator=",">
+            ( #{item.id}, #{item.name}, #{item.introduction}, #{item.userId}, #{item.del})
+        </foreach>
+    </insert>
+
+</mapper>

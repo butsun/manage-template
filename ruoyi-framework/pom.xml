@@ -76,7 +76,11 @@
             <groupId>com.ruoyi</groupId>
             <artifactId>ruoyi-system</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>com.common</groupId>
+            <artifactId>medicine</artifactId>
+            <version>4.7.7</version>
+        </dependency>
     </dependencies>
 
 </project>
